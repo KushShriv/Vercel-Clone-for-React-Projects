@@ -1,6 +1,6 @@
 # Plan: usable React deployment tool from GitHub Pages
 
-Status: implementation in progress. The local workflow has passed a targeted Docker build and in-app browser test. The AWS option is experimental and has not been tested in an AWS account. The browser and platform matrix and independent isolation review remain open; see `local-service/README.md` and `cloud/README.md`.
+Status: implementation in progress. The instruction page was published to GitHub Pages on 12 November 2026 and loads. The local workflow has passed a targeted Docker build and in-app browser test. The AWS option is experimental and has not been tested in an AWS account. The Pages-to-loopback connection, browser and platform matrix, live Docker tests on a clean machine and independent isolation review remain open; see `local-service/README.md` and `cloud/README.md`.
 
 ## Outcome and scope
 
