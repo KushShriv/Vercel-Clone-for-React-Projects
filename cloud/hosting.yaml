@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Private S3 origin and public HTTPS CloudFront distribution for immutable deployment prefixes.
+Resources:
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+  AccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${AWS::StackName}-oac'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+  Routes:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub '${AWS::StackName}-routes'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Rewrite extensionless routes within a deployment prefix
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var match = request.uri.match(/^\/([a-f0-9]{32})(?:\/(.*))?$/);
+          if (!match) return { statusCode: 404, statusDescription: 'Not Found' };
+          var rest = match[2] || '';
+          var leaf = rest.split('/').pop();
+          if (!rest || rest.endsWith('/') || leaf.indexOf('.') < 0) request.uri = '/' + match[1] + '/index.html';
+          return request;
+        }
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        IPV6Enabled: true
+        Origins:
+          - Id: private-site
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginPath: /deployments
+            OriginAccessControlId: !GetAtt AccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        DefaultCacheBehavior:
+          TargetOriginId: private-site
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt Routes.FunctionARN
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${SiteBucket.Arn}/deployments/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}'
+Outputs:
+  Bucket:
+    Value: !Ref SiteBucket
+  DistributionId:
+    Value: !Ref Distribution
+  Domain:
+    Value: !GetAtt Distribution.DomainName

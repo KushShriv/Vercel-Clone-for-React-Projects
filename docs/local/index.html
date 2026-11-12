@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local deployment dashboard</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="./app.js"></script>
+</head>
+<body>
+<header><div class="shell header"><a class="brand" href="./">Local Deploy <span> / React</span></a><span class="local-label">Local preview only</span></div></header>
+<main class="shell">
+  <div class="intro"><p class="eyebrow">Your machine · Your project</p><h1>Build a React project.</h1><p>Connect to the local service, then build a public GitHub repository and preview its static output on this machine.</p></div>
+  <div class="layout">
+    <section class="panel" aria-labelledby="connection-title">
+      <div class="section-heading"><div><span class="step">01</span><h2 id="connection-title">Connect</h2></div><span id="connection-state" class="status">Not connected</span></div>
+      <p>Paste the pairing token printed in the terminal where you started the service. The token stays in this browser tab's memory. If the Pages connection is blocked, open the <a href="http://127.0.0.1:4317/">local dashboard</a> instead.</p>
+      <form id="connect-form"><label for="token">Pairing token</label><div class="field-row"><input id="token" type="password" autocomplete="off" spellcheck="false" required><button type="submit">Connect</button></div></form>
+      <p id="connect-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="build-title">
+      <div class="section-heading"><div><span class="step">02</span><h2 id="build-title">New build</h2></div></div>
+      <p>Use a public Vite and React repository with a lockfile. Only build code you trust; build scripts execute code.</p>
+      <form id="build-form"><label for="repository">GitHub repository URL</label><input id="repository" type="url" placeholder="https://github.com/owner/repository" required disabled><label for="revision">Revision <span class="optional">optional</span></label><input id="revision" type="text" placeholder="Default branch" disabled><label class="check"><input id="confirm" type="checkbox" required disabled><span>I understand the repository and its dependencies can run code, and I want to clone and build it.</span></label><button id="build-button" type="submit" disabled>Start build</button></form>
+      <p id="build-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+    <section class="panel wide" aria-labelledby="job-title">
+      <div class="section-heading"><div><span class="step">03</span><h2 id="job-title">Build activity</h2></div><span id="job-state" class="status">No build yet</span></div>
+      <p id="job-description">Build status, commit and logs will appear here.</p><p id="job-id" class="commit" hidden></p><p id="commit" class="commit" hidden></p>
+      <pre id="logs" aria-label="Build logs" hidden></pre>
+      <div class="actions"><a id="preview" class="button" target="_blank" rel="noopener noreferrer" hidden>Open local preview <span aria-hidden="true">↗</span></a><button id="cancel" class="secondary" type="button" hidden>Cancel build</button><button id="delete" class="secondary" type="button" hidden>Delete build</button></div>
+      <p id="job-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+  <aside><strong>Before you build</strong><p>Docker is not a complete security boundary. Use an isolated virtual machine for repositories you do not trust. Builds can use disk space, CPU and network bandwidth. A local preview is not a public deployment. Preview security restrictions block inline scripts and styles, forms, and network requests, so apps that depend on them may not work.</p></aside>
+</main><footer class="shell">The original university prototype remains in the repository.</footer>
+</body></html>
